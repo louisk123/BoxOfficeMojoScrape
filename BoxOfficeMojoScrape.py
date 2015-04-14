@@ -28,7 +28,7 @@ def get_all_movies():
     for letter in index:
 
         # Loop through the pages within each letter
-        for num in range(1,20):
+        for num in range(1, 20):
             url = ("http://www.boxofficemojo.com/movies/alphabetical.htm?"
                    "letter=" + letter + "&page=" + str(num))
             page = urllib2.urlopen(url)
@@ -37,7 +37,7 @@ def get_all_movies():
 
             # skip index row
             if len(rows) > 1:
-                counter = 1;
+                counter = 1
                 for row in rows:
 
                     # skip index row
@@ -121,9 +121,9 @@ def get_runtime(soup):
     try:
         runtime = soup.find(id="body").find(text=re.compile("Runtime"))
         runtime = runtime.findNextSibling().text
+        time_splits = runtime.split("hrs.")
         try:
-            time_splits = runtime.split("hrs.")
-            hrs = int(time_splits[0])*60
+            hrs = int(time_splits[0]) * 60
         except LookupError:
             hrs = 0
         mins = int(time_splits[1].split(" min.")[0].strip())
@@ -139,7 +139,7 @@ def get_budget(soup):
         budget = soup.find(id="body").find(text=re.compile("Production Budget"))
         budget = budget.findNextSibling().text
         if budget != "N/A":
-            budget = int(budget.split("million")[0].split("$")[1].strip())*1000000
+            budget = int(budget.split("million")[0].split("$")[1].strip()) * 1000000
         return budget
     except LookupError:
         return "N/A"
@@ -150,7 +150,7 @@ def get_domestic_gross(soup):
     try:
         gross = soup.find(id="body").find(text=re.compile("Domestic Total Gross: "))
         gross = gross.findNextSibling().text
-        gross = int(gross.replace("$","").replace(",",""))
+        gross = int(gross.replace("$", "").replace(",", ""))
         return gross
     except LookupError:
         try:
@@ -167,7 +167,7 @@ def scrape_movie_data(movie_list, start=0, end=20000):
     budget, gross domestic revenue
     """
     movie_data_list = {}
-    counter = 0;
+    counter = 0
     for movie in movie_list:
         if start < counter < end and counter < len(movie_list):
             url = "http://www.boxofficemojo.com/" + movie
