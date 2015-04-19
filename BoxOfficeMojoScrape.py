@@ -12,6 +12,10 @@ from bs4 import BeautifulSoup
 import string
 from datetime import datetime
 import re
+import pickle
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 
 def get_all_movies():
@@ -31,27 +35,37 @@ def get_all_movies():
         for num in range(1, 20):
             url = ("http://www.boxofficemojo.com/movies/alphabetical.htm?"
                    "letter=" + letter + "&page=" + str(num))
-            page = urllib2.urlopen(url)
-            soup = BeautifulSoup(page)
-            rows = soup.find(id="body").find("table").find("table").find_all("table")[1].find_all("tr")
+            try:
+                page = urllib2.urlopen(url)
+                soup = BeautifulSoup(page)
+                rows = soup.find(id="body").find("table").find("table").find_all(
+                    "table")[1].find_all("tr")
 
-            # skip index row
-            if len(rows) > 1:
-                counter = 1
-                for row in rows:
+                # skip index row
+                if len(rows) > 1:
+                    counter = 1
+                    for row in rows:
 
-                    # skip index row
-                    if counter > 1:
-                        link = row.td.font.a['href']
+                        # skip index row
+                        if counter > 1:
+                            link = row.td.font.a['href']
 
-                        # don't add duplicates
-                        if link not in movies_list:
-                            movies_list.append(link)
+                            # don't add duplicates
+                            if link not in movies_list:
+                                movies_list.append(link)
 
-                    counter += 1
+                        counter += 1
+            except Exception, e:
+                logging.exception(e)
 
     return movies_list
 
+# movie_list_urls = get_all_movies()
+
+with open('critics.pkl', 'w') as f:
+    pickle.dump(movie_list_urls, f)
+
+# print movie_list_urls
 
 def get_genres(soup):
     """ returns all genres from specific movie page at boxofficemojo.com"""
@@ -169,16 +183,20 @@ def scrape_movie_data(movie_list, start=0, end=20000):
     movie_data_list = {}
     counter = 0
     for movie in movie_list:
-        if start < counter < end and counter < len(movie_list):
-            url = "http://www.boxofficemojo.com/" + movie
-            page = urllib2.urlopen(url)
-            soup = BeautifulSoup(page)
-            movie_data_list[get_title(soup)] = [
-                get_genres(soup), get_release_date(soup),
-                get_distributor(soup), get_runtime(soup),
-                get_rating(soup), get_budget(soup), get_domestic_gross(soup)
-            ]
-        counter += 1
+        try:
+            if start < counter < end and counter < len(movie_list):
+                url = "http://www.boxofficemojo.com/" + movie
+                page = urllib2.urlopen(url)
+                soup = BeautifulSoup(page)
+                movie_data_list[get_title(soup)] = [
+                    get_genres(soup), get_release_date(soup),
+                    get_distributor(soup), get_runtime(soup),
+                    get_rating(soup), get_budget(soup), get_domestic_gross(soup)
+                ]
+            counter += 1
+        except Exception, e:
+            logging.exception(e)
+
     return movie_data_list
 
 
